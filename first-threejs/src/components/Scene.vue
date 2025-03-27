@@ -5,13 +5,15 @@
 </template>
 
 <script>
+import hdrFile from '@/assets/environments/environment.hdr';
+
 import { markRaw } from "vue";
 import { gsap } from "gsap";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
-import { RectAreaLight } from 'three'; // ✅ correcto
-import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js'; // ✅ correcto
+import { RectAreaLight } from 'three';
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import {
     DirectionalLightHelper,
     PointLightHelper,
@@ -32,6 +34,14 @@ export default {
                 point: { enabled: false, intensity: 1 },
                 spot: { enabled: false, intensity: 1 }
             })
+        },
+        environmentEnabled: {
+            type: Boolean,
+            default: false
+        },
+        hdrIntensity: {
+            type: Number,
+            default: 0.75
         }
     },
     data() {
@@ -40,16 +50,22 @@ export default {
             camera: null,
             renderer: null,
             controls: null,
+            environmentMap: null,
+            defaultBackground: new THREE.Color(0xffffff),
             lights: {
                 ambient: { instance: null },
                 directional: { instance: null, helper: null },
                 point: { instance: null, helper: null },
                 spot: { instance: null, helper: null },
                 hemisphere: { instance: null, helper: null },
-                rect: { instance: null } // sin helper aún
-            }
+                rect: { instance: null }
+            },
+            cachedEnvironmentMap: null,
+            currentHdrTexture: null
         };
     },
+
+
     created() {
         window.addEventListener("resize", this.setResize);
     },
@@ -63,6 +79,23 @@ export default {
                 this.updateLights(newSettings);
             },
             deep: true
+        },
+        environmentEnabled: {
+            handler(newVal) {
+                if (newVal) {
+                    this.setEnvironment();
+                } else {
+                    this.scene.environment = null;
+                    this.scene.background = this.defaultBackground;
+                }
+            }
+        },
+        hdrIntensity: {
+            handler(newVal) {
+                if (this.environmentEnabled && this.currentHdrTexture) {
+                    this.updateHDRIntensity(newVal);
+                }
+            }
         }
     },
     async mounted() {
@@ -72,6 +105,10 @@ export default {
         this.setRenderer();
         this.setControls();
         this.setResize();
+
+        if (this.environmentEnabled) {
+            await this.setEnvironment();
+        }
 
         // Create the cube
         const geometry = new THREE.BoxGeometry(1, 1, 1);
@@ -94,10 +131,10 @@ export default {
     methods: {
         setScene() {
             this.scene = markRaw(new THREE.Scene());
-            this.scene.background = new THREE.Color(0xffffff);
+            this.defaultBackground = new THREE.Color(0xffffff);
+            this.scene.background = this.defaultBackground;
         },
         setLighting() {
-
             RectAreaLightUniformsLib.init();
             // Ambient Light
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
@@ -113,8 +150,8 @@ export default {
             this.lights.directional.instance = directionalLight;
 
             // Directional Light Helper
-            const directionalHelper = new THREE.DirectionalLightHelper(directionalLight, 1, 0xff0000); // Color rojo
-            directionalHelper.visible = false; // Cambia a true si quieres que sea visible por defecto
+            const directionalHelper = new THREE.DirectionalLightHelper(directionalLight, 1, 0xff0000);
+            directionalHelper.visible = false;
             this.scene.add(directionalHelper);
             this.lights.directional.helper = directionalHelper;
 
@@ -125,7 +162,7 @@ export default {
             this.scene.add(pointLight);
             this.lights.point.instance = pointLight;
 
-            const pointHelper = new PointLightHelper(pointLight, 0.5,  0xff0000); // ✅ helper real
+            const pointHelper = new PointLightHelper(pointLight, 0.5, 0xff0000);
             pointHelper.visible = false;
             this.scene.add(pointHelper);
             this.lights.point.helper = pointHelper;
@@ -139,7 +176,7 @@ export default {
             this.lights.spot.instance = spotLight;
 
             // SpotLight Helper
-            const spotHelper = new SpotLightHelper(spotLight,  0xff0000);
+            const spotHelper = new SpotLightHelper(spotLight, 0xff0000);
             spotHelper.visible = false;
             this.scene.add(spotHelper);
             this.lights.spot.helper = spotHelper;
@@ -151,21 +188,88 @@ export default {
             this.lights.hemisphere.instance = hemisphereLight;
 
             // Hemisphere Helper
-            const hemiHelper = new HemisphereLightHelper(hemisphereLight, 1,  0xff0000);
+            const hemiHelper = new HemisphereLightHelper(hemisphereLight, 1, 0xff0000);
             hemiHelper.visible = false;
             this.scene.add(hemiHelper);
             this.lights.hemisphere.helper = hemiHelper;
 
             RectAreaLightUniformsLib.init();
 
-            const rectLight = new RectAreaLight(0xffffff, 5, 4, 4); // intensidad, ancho, alto
+            const rectLight = new RectAreaLight(0xffffff, 5, 4, 4);
             rectLight.position.set(0, 2, -3);
             rectLight.lookAt(0, 0, 0);
             rectLight.visible = false;
             this.scene.add(rectLight);
             this.lights.rect.instance = rectLight;
-
         },
+
+        async setEnvironment() {
+            try {
+                if (this.performanceProfile === 'low') {
+                    this.scene.environment = null;
+                    this.scene.background = new THREE.Color(0xffffff);
+                    return;
+                }
+
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                let floatType = THREE.FloatType;
+                let exposure = this.hdrIntensity;
+
+                if (isIOS) {
+                    floatType = THREE.HalfFloatType;
+                }
+
+                // Carga diferida del único HDR usando import.meta.glob
+                const hdrFiles = import.meta.glob('@/assets/environments/environment.hdr', { as: 'url' });
+                const hdrFile = await hdrFiles['/src/assets/environments/environment.hdr']();
+
+                const loader = new RGBELoader().setDataType(floatType);
+                const hdrTexture = await new Promise((resolve, reject) => {
+                    loader.load(
+                        hdrFile,
+                        resolve,
+                        undefined,
+                        reject
+                    );
+                });
+
+                hdrTexture.mapping = THREE.EquirectangularReflectionMapping;
+                this.currentHdrTexture = hdrTexture;
+
+                // Ajustar exposición
+                this.applyHDRIntensity(hdrTexture, exposure);
+
+                const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
+                pmremGenerator.compileEquirectangularShader();
+
+                const envMap = pmremGenerator.fromEquirectangular(hdrTexture).texture;
+
+                pmremGenerator.dispose();
+
+                this.scene.environment = envMap;
+                this.scene.background = new THREE.Color(0xffffff);
+            } catch (error) {
+                console.error('Failed to load environment file:', error);
+            }
+        },
+
+        applyHDRIntensity(hdrTexture, intensity) {
+            const data = hdrTexture.image.data;
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] *= intensity;
+                data[i + 1] *= intensity;
+                data[i + 2] *= intensity;
+            }
+            hdrTexture.needsUpdate = true;
+        },
+
+        updateHDRIntensity(intensity) {
+            if (!this.currentHdrTexture || !this.environmentEnabled) return;
+            
+            // Create a fresh copy from the original texture
+            this.setEnvironment();
+        },
+
         updateLights(settings) {
             for (const [type, setting] of Object.entries(settings)) {
                 const light = this.lights[type]?.instance;
@@ -183,7 +287,6 @@ export default {
                         helper.update();
                     }
                 }
-
             }
         },
         setCamera() {
