@@ -8,10 +8,17 @@
                 @change="emitLightUpdate" />
             <label :for="`${key}Light`">{{ formatLabel(key) }}</label>
             
-            <input type="range" v-model="lights[key].intensity" :min="range[key]?.min || 0" :max="range[key]?.max || 2"
-                :step="range[key]?.step || 0.1" :disabled="!lights[key].enabled" :value="range[key]?.value" @input="emitLightUpdate" />
+            <input type="range" v-model.number="lights[key].intensity" 
+                :min="range[key]?.min || 0" 
+                :max="range[key]?.max || 2"
+                :step="range[key]?.step || 0.1"
+                :value="lights[key].intensity" 
+                @input="emitLightUpdate" 
+                :disabled="!lights[key].enabled" 
+            />
+
         </div>
-        
+
         <!-- Control para el entorno HDR -->
         <div class="menu__item">
             <input type="checkbox" id="hdrToggle" v-model="hdrEnabled" @change="emitHDRToggle">
@@ -46,21 +53,20 @@ export default {
     data() {
         return {
             lights: {
-                ambient: { enabled: true, intensity: 25 },
+                ambient: { enabled: true, intensity: 5 },
                 directional: { enabled: false, intensity: 2.5 },
-                point: { enabled: false, intensity: 500 },
-                spot: { enabled: false, intensity: 500 },
+                point: { enabled: false, intensity: 250 },
+                spot: { enabled: false, intensity: 50 },
                 hemisphere: { enabled: false, intensity: 25 },
                 rect: { enabled: false, intensity: 25 },
             },
             range: {
-                ambient: { min: 0, max: 50, step: 1 },
+                ambient: { min: 0, max: 10, step: 0.5},
                 directional: { min: 0, max: 5, step: 0.1 },
-                point: { min: 0, max: 1000, step: 0.1 },
-                spot: { min: 0, max: 1000, step: 0.1 },
-                hemisphere: { min: 0, max: 50, step: 0.1 },
+                point: { min: 0, max: 500, step: 0.1 },
+                spot: { min: 0, max: 100, step: 0.1 },
+                hemisphere: { min: 0, max: 10, step: 0.1 },
                 rect: { min: 0, max: 50, step: 1 },
-                hdr: { min: 0, max: 2, step: 0.05 },
             },
             hdrEnabled: false,
             hdrIntensity: 0.75,
@@ -131,7 +137,7 @@ export default {
         }
         
         input[type="range"] {
-            width: 100px;
+            width: 100%;
             cursor: pointer;
         }
         
