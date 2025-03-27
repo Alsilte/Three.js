@@ -1,0 +1,11 @@
+{
+    "minWidth": 1020,
+    "maxWidth": 2020,
+    "width":1020,
+    "minHeight": 1080,
+    "maxHeight": 2580,
+    "height":1080,
+    "minProfundo": 1080,
+    "maxProfundo": 1580,
+    "profundo":1080
+}
