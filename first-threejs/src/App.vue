@@ -11,12 +11,8 @@
     -->
 
 
-    <Scene 
-      class="app__scene"
-      :lightSettings="lightSettings"           
-      :environmentEnabled="environmentEnabled" 
-      :hdrIntensity="hdrIntensity"             
-    />
+    <Scene class="app__scene" :lightSettings="lightSettings" :environmentEnabled="environmentEnabled"
+      :hdrIntensity="hdrIntensity" />
 
     <!-- 
       Componente Menu:
@@ -34,18 +30,15 @@
 
       
     -->
-    <Menu 
-      class="app__menu"
-      :environmentEnabled="environmentEnabled"  
-      :hdrIntensityValue="hdrIntensity"         
-      @update-lights="updateLights"             
-      @toggle-hdr="updateEnvironment"           
-      @update-hdr-intensity="updateHDRIntensity" 
-    />
+    <Menu class="app__menu" :environmentEnabled="environmentEnabled" :hdrIntensityValue="hdrIntensity"
+      @update-lights="updateLights" @toggle-hdr="updateEnvironment" @update-hdr-intensity="updateHDRIntensity" />
   </div>
 </template>
 
 <script>
+import Scene from '@/components/Scene.vue'
+import Menu from '@/components/Menu.vue'
+
 export default {
   name: 'App',
   // Registro de componentes hijos
@@ -53,7 +46,7 @@ export default {
     Scene,
     Menu
   },
-  
+
   // Datos reactivos: cualquier cambio se propaga automáticamente
   data() {
     return {
@@ -66,11 +59,11 @@ export default {
         hemisphere: { enabled: false, intensity: 1 },  // Luz hemisférica
         rect: { enabled: false, intensity: 1 }         // Luz de área rectangular
       },
-      environmentEnabled: false,  // Estado inicial del entorno HDR
-      hdrIntensity: 0.75          // Intensidad inicial del HDR
+      environmentEnabled: true,  // Estado inicial del entorno HDR
+      hdrIntensity: 1          // Intensidad inicial del HDR
     }
   },
-  
+
   // Métodos para manejar eventos de los componentes hijos
   methods: {
     // Actualiza la configuración de luces cuando cambia en el menú
@@ -78,13 +71,13 @@ export default {
       // Usa spread operator para crear una copia y disparar reactividad
       this.lightSettings = { ...newValues };
     },
-    
+
     // Activa/desactiva el entorno HDR
     updateEnvironment(enabled) {
       console.log('actualizado', enabled);
       this.environmentEnabled = enabled;
     },
-    
+
     // Cambia la intensidad del HDR
     updateHDRIntensity(intensity) {
       this.hdrIntensity = intensity;
@@ -98,17 +91,33 @@ export default {
   display: flex;
   height: 100vh;
   width: 100dvw;
-  
+
   &__scene {
     height: 100%;
     width: 65%;
     border: 1px solid rgb(255, 255, 255);
+
+
   }
-  
+
   &__menu {
     width: calc(100% - 65%);
     background-color: rgba(11, 121, 84, 0.637);
     overflow-y: auto;
+  }
+
+  @media (max-width: 869px) {
+    flex-direction: column; // Cambia el diseño a una columna
+
+    &__scene {
+      width: 100%; // La escena ocupa todo el ancho
+      height: 50%; // La escena ocupa la mitad de la altura
+    }
+
+    &__menu {
+      width: 100%; // El menú ocupa todo el ancho
+      height: 50%; // El menú ocupa la otra mitad de la altura
+    }
   }
 }
 </style>

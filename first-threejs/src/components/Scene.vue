@@ -25,6 +25,9 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 import { RectAreaLight } from 'three';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
+import { RectAreaLightHelper } from 'three/examples/jsm/helpers/RectAreaLightHelper.js';
+
+
 import {
     DirectionalLightHelper,
     PointLightHelper,
@@ -135,17 +138,117 @@ export default {
             await this.setEnvironment();
         }
 
-        // Crea el cubo
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshStandardMaterial({
+
+
+        // Crear geometría del cubo
+        const geometryCube = new THREE.BoxGeometry(1, 1, 1);
+        const materialCubo = new THREE.MeshStandardMaterial({
             color: 0x00ff00,
             metalness: 0.5,
             roughness: 0.1,
+
         });
 
+        const cubo = new THREE.Mesh(geometryCube, materialCubo);
+        cubo.castShadow = true; // El cubo proyecta sombras
+        cubo.receiveShadow = true; // El cubo recibe sombras
+        this.scene.add(cubo);
 
-        const cube = new THREE.Mesh(geometry, material);
-        this.scene.add(cube);
+        // Crear geometría del plano
+        const geometryPlane = new THREE.PlaneGeometry(10, 10); // Aumenta el tamaño del plano
+        const materialPlane = new THREE.MeshStandardMaterial({ // Cambiado a MeshStandardMaterial
+            color: 0xffff00,
+            side: THREE.DoubleSide,
+            metalness: 0.1,
+            roughness: 0.8
+        }); // Material visible por ambos lados
+        const plane = new THREE.Mesh(geometryPlane, materialPlane);
+        plane.receiveShadow = true; // El plano recibe sombras
+
+        // Rotar el plano para que quede horizontal
+        plane.rotation.x = -Math.PI / 2; // Rota 90 grados en el eje X
+
+        // Posicionar el plano justo debajo del cubo
+        plane.position.y = -0.51; // Ajusta la posición en el eje Y para que el cubo "se apoye" en el plano
+
+        // Añadir el plano a la escena
+        this.scene.add(plane);
+        /* const faceSize = 1; // Tamaño de cada cara
+         const half = faceSize / 2; // Mitad del tamaño de la cara
+         const cubeParts = [];
+ 
+         // Configuración de las posiciones y rotaciones finales para formar el cubo
+         const transforms = [
+             // Frente
+             { position: [0, 0, half], rotation: [0, 0, 0] },
+             // Atrás
+             { position: [0, 0, -half], rotation: [0, Math.PI, 0] },
+             // Arriba
+             { position: [0, half, 0], rotation: [-Math.PI / 2, 0, 0] },
+             // Abajo
+             { position: [0, -half, 0], rotation: [Math.PI / 2, 0, 0] },
+             // Derecha
+             { position: [half, 0, 0], rotation: [0, -Math.PI / 2, 0] },
+             // Izquierda
+             { position: [-half, 0, 0], rotation: [0, Math.PI / 2, 0] },
+         ];
+ 
+         // Crear las caras del cubo con posiciones y rotaciones iniciales aleatorias
+         transforms.forEach(({ position, rotation }, i) => {
+             const materialClone = material.clone();
+             const face = new THREE.Mesh(new THREE.PlaneGeometry(faceSize, faceSize), materialClone);
+ 
+             // Generar posiciones iniciales aleatorias fuera del área visible
+             const randomX = (Math.random() - 0.5) * 20; // Rango: -10 a 10
+             const randomY = (Math.random() - 0.5) * 20; // Rango: -10 a 10
+             const randomZ = (Math.random() - 0.5) * 20; // Rango: -10 a 10
+ 
+             // Generar rotaciones iniciales aleatorias
+             const randomRotX = Math.random() * Math.PI * 2; // Rango: 0 a 2π
+             const randomRotY = Math.random() * Math.PI * 2; // Rango: 0 a 2π
+             const randomRotZ = Math.random() * Math.PI * 2; // Rango: 0 a 2π
+ 
+             // Asignar posiciones y rotaciones iniciales aleatorias
+             face.position.set(randomX, randomY, randomZ);
+             face.rotation.set(randomRotX, randomRotY, randomRotZ);
+ 
+             // Añadir la cara a la escena y al array de partes del cubo
+             cubeParts.push(face);
+ 
+             // Animar hacia la posición y rotación final para formar el cubo
+             gsap.to(face.position, {
+                 x: position[0],
+                 y: position[1],
+                 z: position[2],
+                 duration: 5,
+                 ease: "power2.inOut",
+             });
+ 
+             gsap.to(face.rotation, {
+                 x: rotation[0],
+                 y: rotation[1],
+                 z: rotation[2],
+                 duration: 5,
+                 ease: "power2.inOut",
+             });
+         });
+         // Animación GSAP: rotación continua
+         /*gsap.to(cube.rotation, {
+             y: Math.PI * 5,
+             duration: 3,
+             repeat: -1,
+             ease: 'power1.inOut'
+         });
+ 
+         // Animación GSAP: rebote vertical
+         gsap.to(cube.position, {
+             y: 1.5,
+             duration: 1.5,
+             yoyo: true,
+             repeat: -1,
+             ease: 'sine.inOut'
+         });*/
+
 
         // Inicia bucle de animación
         this.setAnimate();
@@ -174,6 +277,12 @@ export default {
             const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
             directionalLight.position.set(2, 5, 2);
             directionalLight.visible = false;
+            directionalLight.castShadow = true; // Permite proyectar sombras
+            // Configurar calidad de sombras
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 0.1;
+            directionalLight.shadow.camera.far = 500;
             this.scene.add(directionalLight);
             this.lights.directional.instance = directionalLight;
 
@@ -187,6 +296,9 @@ export default {
             const pointLight = new THREE.PointLight(0xffffff, 1);
             pointLight.position.set(5, 5, 5);
             pointLight.visible = false;
+            pointLight.castShadow = true; // Permite proyectar sombras
+            pointLight.shadow.mapSize.width = 2048;
+            pointLight.shadow.mapSize.height = 2048;
             this.scene.add(pointLight);
             this.lights.point.instance = pointLight;
 
@@ -200,6 +312,9 @@ export default {
             const spotLight = new THREE.SpotLight(0xffffff, 1);
             spotLight.position.set(1, 2, 1);
             spotLight.visible = false;
+            spotLight.castShadow = true; // Permite proyectar sombras
+            spotLight.shadow.mapSize.width = 2048;
+            spotLight.shadow.mapSize.height = 2048;
             this.scene.add(spotLight);
             this.lights.spot.instance = spotLight;
 
@@ -229,6 +344,9 @@ export default {
             rectLight.visible = false;
             this.scene.add(rectLight);
             this.lights.rect.instance = rectLight;
+
+            const rectLightHelper = new RectAreaLightHelper(rectLight, 1, 0xff0000);
+            rectLight.add(rectLightHelper); // O scene.add(rectLightHelper), cualquiera funciona
         },
 
         // Configura el entorno HDR
@@ -328,10 +446,10 @@ export default {
         setCamera() {
             this.camera = markRaw(
                 new THREE.PerspectiveCamera(
-                    50,
+                    75,
                     this.$refs.scene.clientWidth / this.$refs.scene.clientHeight,
                     0.1,
-                    2000
+                    1000
                 )
             );
             this.camera.position.set(3, 2, 3);
@@ -346,6 +464,8 @@ export default {
                 this.$refs.scene.clientHeight
             );
             this.renderer.shadowMap.enabled = true;
+            this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
             this.$refs.scene
                 .querySelector(".scene__canvas")
                 .appendChild(this.renderer.domElement);
@@ -415,6 +535,7 @@ export default {
         // Loop de animación principal
         setAnimate() {
             const animate = () => {
+
                 requestAnimationFrame(animate);
 
                 if (this.controls) {
@@ -429,7 +550,7 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 // Estilos para el contenedor de la escena
 .scene {
     height: 100%;

@@ -113,7 +113,7 @@ export default {
     // Estado local reactivo del componente
     data() {
         return {
-            // Configuración inicial de luces
+            // Configuración inicial de luces 
             lights: {
                 ambient: { enabled: false, intensity: 5 },      // Luz ambiental
                 directional: { enabled: false, intensity: 2.5 },// Luz direccional
@@ -132,7 +132,7 @@ export default {
                 rect: { min: 0, max: 50, step: 1 },
             },
             // Estado y configuración de HDR
-            hdrEnabled: false,
+            hdrEnabled: true,
             hdrIntensity: 0.75,
         };
     },
@@ -231,6 +231,11 @@ export default {
     
     &__item:last-child {
         margin-bottom: 0;
+    }
+
+    @media (max-width: 869px) {
+        padding-top: calc(10vh);
+
     }
 }
 </style>
