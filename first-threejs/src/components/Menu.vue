@@ -7,7 +7,7 @@
     -->
     <div class="menu">
         <h2 class="menu__title">Lighting Options</h2>
-        
+
         <!-- 
             Iteración dinámica sobre configuraciones de luces
             - :key genera una clave única para cada elemento
@@ -20,15 +20,10 @@
             v-model="lights[key].enabled"  // Enlace bidireccional de estado
             @change="emitLightUpdate"      // Emite evento al cambiar
                 -->
-            <input 
-                type="checkbox" 
-                :id="`${key}Light`" 
-                :name="`${key}Light`" 
-                v-model="lights[key].enabled"  
-                @change="emitLightUpdate"      
-            />
+            <input type="checkbox" :id="`${key}Light`" :name="`${key}Light`" v-model="lights[key].enabled"
+                @change="emitLightUpdate" />
             <label :for="`${key}Light`">{{ formatLabel(key) }}</label>
-            
+
             <!-- Slider de intensidad reactivo 
             
             v-model.number="lights[key].intensity"  // Enlace numérico de intensidad
@@ -39,16 +34,9 @@
             @input="emitLightUpdate"                // Emite evento al modificar
             :disabled="!lights[key].enabled"        // Desactiva si luz no está habilitada
             -->
-            <input 
-                type="range" 
-                v-model.number="lights[key].intensity"  
-                :min="range[key]?.min || 0"             
-                :max="range[key]?.max || 2"             
-                :step="range[key]?.step || 0.1"         
-                :value="lights[key].intensity" 
-                @input="emitLightUpdate"                
-                :disabled="!lights[key].enabled"        
-            />
+            <input type="range" v-model.number="lights[key].intensity" :min="range[key]?.min || 0"
+                :max="range[key]?.max || 2" :step="range[key]?.step || 0.1" :value="lights[key].intensity"
+                @input="emitLightUpdate" :disabled="!lights[key].enabled" />
         </div>
 
         <!-- 
@@ -60,15 +48,10 @@
             @change="emitHDRToggle"   // Emite evento de cambio
         -->
         <div class="menu__item">
-            <input 
-                type="checkbox" 
-                id="hdrToggle" 
-                v-model="hdrEnabled"      
-                @change="emitHDRToggle"   
-            >
+            <input type="checkbox" id="hdrToggle" v-model="hdrEnabled" @change="emitHDRToggle">
             <label for="hdrToggle">Activar HDR</label>
         </div>
-        
+
         <!-- Slider de intensidad HDR (condicional) 
         
         v-model.number="hdrIntensity"   // Enlace numérico de intensidad
@@ -79,23 +62,24 @@
         -->
         <div class="menu__item" v-if="hdrEnabled">
             <label for="hdrIntensity">HDR Intensity</label>
-            <input 
-                type="range" 
-                id="hdrIntensity" 
-                v-model.number="hdrIntensity"   
-                :min="range.hdr?.min || 0"      
-                :max="range.hdr?.max || 2"      
-                :step="range.hdr?.step || 0.1"  
-                @input="emitHDRIntensity"       
-            />
+            <input type="range" id="hdrIntensity" v-model.number="hdrIntensity" :min="range.hdr?.min || 0"
+                :max="range.hdr?.max || 2" :step="range.hdr?.step || 0.1" @input="emitHDRIntensity" />
+        </div>
+        <div class="menu__texturas">
+            <div v-for="(texture, index) in textures" :key="index" class="menu__texturas__container">
+                <img :src="texture.img" :alt="texture.name" />
+                <p>{{ texture.name }}</p>
+            </div>
+
         </div>
     </div>
+
 </template>
 
 <script>
 export default {
     name: "Menu",
-    
+
     // Props recibidas del componente padre
     props: {
         // Valor inicial del entorno HDR
@@ -109,7 +93,7 @@ export default {
             default: 0.75
         }
     },
-    
+
     // Estado local reactivo del componente
     data() {
         return {
@@ -124,26 +108,45 @@ export default {
             },
             // Rangos de intensidad para cada tipo de luz
             range: {
-                ambient: { min: 0, max: 10, step: 0.5},
+                ambient: { min: 0, max: 10, step: 0.5 },
                 directional: { min: 0, max: 5, step: 0.1 },
                 point: { min: 0, max: 500, step: 0.1 },
                 spot: { min: 0, max: 100, step: 0.1 },
                 hemisphere: { min: 0, max: 50, step: 0.1 },
                 rect: { min: 0, max: 50, step: 1 },
             },
+
+            // Array de texturas cargadas dinámicamente
+            textures: Object.entries(import.meta.glob('@/assets/texturas/*.webp'))
+                .filter(([key]) => key.split('/').pop().toLowerCase().includes('base'))
+                .map(([key]) => {
+                    const filename = key.split('/').pop();
+                    return {
+                        name: filename
+                            .replace(/\.(webp|jpg|png)$/, '') // Remove file extension
+                            .replace(/[_-]/g, ' ') // Replace underscores and hyphens with spaces
+                            .replace('baseColor', ' ')
+                            .split(' ')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                            .join(' '), // Capitalize each word
+                        img: `/src/assets/texturas/${filename}`, // Construye la URL de la imagen
+                    };
+                }),
             // Estado y configuración de HDR
             hdrEnabled: true,
             hdrIntensity: 0.75,
         };
     },
-    
+
     // Hook de ciclo de vida: se ejecuta al crear el componente
     created() {
+
+        console.log(this.textures);
         // Inicializa valores desde props del padre
         this.hdrEnabled = this.environmentEnabled;
         this.hdrIntensity = this.hdrIntensityValue;
     },
-    
+
     // Observadores para detectar cambios en props
     watch: {
         // Actualiza estado HDR si cambia en el padre
@@ -155,24 +158,24 @@ export default {
             this.hdrIntensity = newVal;
         }
     },
-    
+
     // Métodos para emitir eventos al padre
     methods: {
         // Emite configuración actualizada de luces
         emitLightUpdate() {
             this.$emit('update-lights', { ...this.lights });
         },
-        
+
         // Emite estado de activación de HDR
         emitHDRToggle() {
             this.$emit('toggle-hdr', this.hdrEnabled);
         },
-        
+
         // Emite intensidad de HDR
         emitHDRIntensity() {
             this.$emit('update-hdr-intensity', Number(this.hdrIntensity));
         },
-        
+
         // Formatea etiquetas de luces
         formatLabel(key) {
             const labels = {
@@ -197,45 +200,80 @@ export default {
     align-items: center;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     font-family: Arial, sans-serif;
-    padding-top: calc(40vh);
+    padding-top: calc(10vh);
     color: white;
-    
+
+    &__texturas {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        justify-content: center;
+        width: 100%; 
+        padding-left: calc(100%/6);
+        margin-top: 5%;
+
+        &__container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 50%;
+
+            img {
+                width: 100px;
+                height: auto;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                margin-bottom: 5px;
+
+                &:hover{
+
+                    border: 2px solid black;
+                    
+                }
+            }
+
+            p {
+                font-size: 0.9rem;
+                color: white;
+                text-align: center;
+            }
+        }
+    }
+
+
     &__title {
         font-size: 1.5rem;
         font-weight: bold;
         margin-bottom: 20px;
     }
-    
+
     &__item {
         display: flex;
         align-items: center;
         margin-bottom: 15px;
         gap: 10px;
-        
+
         input[type="checkbox"] {
             margin-right: 10px;
             accent-color: #ff0303;
         }
-        
+
         input[type="range"] {
             width: 100%;
             cursor: pointer;
         }
-        
+
         label {
             font-size: 1rem;
             cursor: pointer;
             min-width: 100px;
         }
     }
-    
+
     &__item:last-child {
         margin-bottom: 0;
     }
 
-    @media (max-width: 869px) {
-        padding-top: calc(10vh);
 
-    }
 }
 </style>

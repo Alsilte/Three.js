@@ -138,14 +138,54 @@ export default {
             await this.setEnvironment();
         }
 
+        // Cargar texturas
+        const textureLoader = new THREE.TextureLoader();
+        const baseColor = textureLoader.load(new URL('@/assets/texturas/allure_sand_baseColor.webp', import.meta.url).href);
+        const metallic = textureLoader.load(new URL('@/assets/texturas/allure_softtextured_metallic.webp', import.meta.url).href);
+        const roughness = textureLoader.load(new URL('@/assets/texturas/allure_softtextured_roughness.webp', import.meta.url).href);
 
 
         // Crear geometría del cubo
         const geometryCube = new THREE.BoxGeometry(1, 1, 1);
         const materialCubo = new THREE.MeshStandardMaterial({
+            map: baseColor, // Textura base (color del cubo)
+            metalnessMap: metallic, // Textura para el metalness
+            roughnessMap: roughness, // Textura para el roughness
+            metalness: 1, // Nivel de metalness (puedes ajustarlo si es necesario)
+            roughness: 1, // Nivel de roughness (puedes ajustarlo si es necesario)
+        });
+        const cubo = new THREE.Mesh(geometryCube, materialCubo);
+        cubo.castShadow = true; // El cubo proyecta sombras
+        cubo.receiveShadow = true; // El cubo recibe sombras
+        cubo.position.y = 0.5 + 0.2
+        this.scene.add(cubo);
+
+        // Crear geometría del plano
+        const geometryPlane = new THREE.PlaneGeometry(10, 10); // Aumenta el tamaño del plano
+        const materialPlane = new THREE.MeshStandardMaterial({ // Cambiado a MeshStandardMaterial
+            color: 0xffffff,
+            side: THREE.DoubleSide,
+            metalness: 0.1,
+            roughness: 0.8
+        }); // Material visible por ambos lados
+        const plane = new THREE.Mesh(geometryPlane, materialPlane);
+        plane.receiveShadow = true; // El plano recibe sombras
+
+        // Rotar el plano para que quede horizontal
+        plane.rotation.x = -Math.PI / 2; // Rota 90 grados en el eje X
+
+        // Posicionar el plano justo debajo del cubo
+        plane.position.y = -0.51; // Ajusta la posición en el eje Y para que el cubo "se apoye" en el plano
+
+        // Añadir el plano a la escena
+        this.scene.add(plane);
+
+        /*// Crear geometría del cubo
+        const geometryCube = new THREE.BoxGeometry(1, 1, 1);
+        const materialCubo = new THREE.MeshStandardMaterial({
             color: 0x00ff00,
             metalness: 0.5,
-            roughness: 0.1,
+            roughness: 1,
 
         });
 
@@ -157,7 +197,7 @@ export default {
         // Crear geometría del plano
         const geometryPlane = new THREE.PlaneGeometry(10, 10); // Aumenta el tamaño del plano
         const materialPlane = new THREE.MeshStandardMaterial({ // Cambiado a MeshStandardMaterial
-            color: 0xffff00,
+            color: 0xffffff,
             side: THREE.DoubleSide,
             metalness: 0.1,
             roughness: 0.8
@@ -309,7 +349,7 @@ export default {
 
 
             // Spot Light
-            const spotLight = new THREE.SpotLight(0xffffff, 1);
+            const spotLight = new THREE.SpotLight(0xff0000, 1);
             spotLight.position.set(1, 2, 1);
             spotLight.visible = false;
             spotLight.castShadow = true; // Permite proyectar sombras
