@@ -1,10 +1,21 @@
 <template>
+    <!-- 
+        Contenedor de la escena 3D
+        - Usa ref para referenciar el elemento del DOM
+        - Evento de doble clic para resetear vista
+    -->
     <div ref="scene" class="scene">
+        <!-- 
+            Canvas de renderizado 
+            - Span usado como contenedor del renderizador WebGL
+            - Evento de doble clic llama a resetView()
+        -->
         <span class="scene__canvas" @dblclick="resetView()"> </span>
     </div>
 </template>
 
 <script>
+// Importaciones de Three.js y otros recursos necesarios
 import hdrFile from '@/assets/environments/environment.hdr';
 
 import { markRaw } from "vue";
@@ -21,11 +32,12 @@ import {
     HemisphereLightHelper
 } from "three";
 
-
-
 export default {
     name: "Scene",
+    // Props que recibe el componente
     props: {
+        // Props recibidas del padre para configurar escena
+        // Configuración de luces desde el menú
         lightSettings: {
             type: Object,
             default: () => ({
@@ -35,6 +47,7 @@ export default {
                 spot: { enabled: false, intensity: 1 }
             })
         },
+        // Control del entorno HDR
         environmentEnabled: {
             type: Boolean,
             default: false
@@ -44,14 +57,16 @@ export default {
             default: 0.75
         }
     },
+    // Estado local del componente
     data() {
         return {
-            scene: null,
-            camera: null,
-            renderer: null,
-            controls: null,
-            environmentMap: null,
+            scene: null,          // Escena principal de Three.js
+            camera: null,         // Cámara perspectiva
+            renderer: null,       // Renderizador WebGL
+            controls: null,       // Controles de órbita para la cámara
+            environmentMap: null, // Mapa de entorno HDR
             defaultBackground: new THREE.Color(0xffffff),
+            // Objetos de luces y sus helpers visuales
             lights: {
                 ambient: { instance: null },
                 directional: { instance: null, helper: null },
@@ -65,7 +80,7 @@ export default {
         };
     },
 
-
+    // Lifecycle hooks y observadores
     created() {
         window.addEventListener("resize", this.setResize);
     },
@@ -73,23 +88,31 @@ export default {
         window.removeEventListener("resize", this.setResize);
         this.setDispose();
     },
+
+    // Observadores de props reactivas
     watch: {
+
+        // Observa cambios en configuración de luces
         lightSettings: {
             handler(newSettings) {
                 this.updateLights(newSettings);
             },
-            deep: true
+            deep: true // Observa cambios profundos en el objeto
         },
+
+        // Observa activación/desactivación de entorno HDR
         environmentEnabled: {
             handler(newVal) {
                 if (newVal) {
-                    this.setEnvironment();
+                    this.setEnvironment();  // Activa entorno
                 } else {
                     this.scene.environment = null;
                     this.scene.background = this.defaultBackground;
                 }
             }
         },
+
+        // Observa cambios en intensidad HDR
         hdrIntensity: {
             handler(newVal) {
                 if (this.environmentEnabled && this.currentHdrTexture) {
@@ -98,6 +121,8 @@ export default {
             }
         }
     },
+
+    // Hook de ciclo de vida: se ejecuta al montar componente
     async mounted() {
         this.setScene();
         this.setLighting();
@@ -110,7 +135,7 @@ export default {
             await this.setEnvironment();
         }
 
-        // Create the cube
+        // Crea el cubo
         const geometry = new THREE.BoxGeometry(1, 1, 1);
         const material = new THREE.MeshStandardMaterial({
             color: 0x00ff00,
@@ -118,22 +143,25 @@ export default {
             roughness: 0.1,
         });
 
-        // Create the mesh and add it to the scene
+
         const cube = new THREE.Mesh(geometry, material);
         this.scene.add(cube);
 
-        // Start the animation loop
+        // Inicia bucle de animación
         this.setAnimate();
 
-        // Apply initial light settings
+        // Aplica configuración inicial de luces
         this.updateLights(this.lightSettings);
     },
     methods: {
+        // Inicializa la escena de Three.js
         setScene() {
             this.scene = markRaw(new THREE.Scene());
             this.defaultBackground = new THREE.Color(0xffffff);
             this.scene.background = this.defaultBackground;
         },
+
+        // Configura todas las luces disponibles en la escena
         setLighting() {
             RectAreaLightUniformsLib.init();
             // Ambient Light
@@ -203,6 +231,7 @@ export default {
             this.lights.rect.instance = rectLight;
         },
 
+        // Configura el entorno HDR
         async setEnvironment() {
             try {
                 if (this.performanceProfile === 'low') {
@@ -253,6 +282,7 @@ export default {
             }
         },
 
+        // Aplica la intensidad al mapa HDR
         applyHDRIntensity(hdrTexture, intensity) {
             const data = hdrTexture.image.data;
             for (let i = 0; i < data.length; i += 4) {
@@ -263,14 +293,18 @@ export default {
             hdrTexture.needsUpdate = true;
         },
 
+        // Actualiza la intensidad del HDR
         updateHDRIntensity(intensity) {
             if (!this.currentHdrTexture || !this.environmentEnabled) return;
-            
+
             // Create a fresh copy from the original texture
             this.setEnvironment();
         },
 
+        // Actualiza el estado de las luces según la configuración
         updateLights(settings) {
+
+            // Itera sobre cada tipo de luz
             for (const [type, setting] of Object.entries(settings)) {
                 const light = this.lights[type]?.instance;
                 const helper = this.lights[type]?.helper;
@@ -289,6 +323,8 @@ export default {
                 }
             }
         },
+
+        // Configura la cámara perspectiva
         setCamera() {
             this.camera = markRaw(
                 new THREE.PerspectiveCamera(
@@ -301,6 +337,8 @@ export default {
             this.camera.position.set(3, 2, 3);
             this.camera.lookAt(0, 0, 0);
         },
+
+        // Inicializa el renderizador WebGL
         setRenderer() {
             this.renderer = markRaw(new THREE.WebGLRenderer({ antialias: true }));
             this.renderer.setSize(
@@ -312,6 +350,8 @@ export default {
                 .querySelector(".scene__canvas")
                 .appendChild(this.renderer.domElement);
         },
+
+        // Configura los controles de órbita
         setControls() {
             this.controls = markRaw(
                 new OrbitControls(this.camera, this.renderer.domElement)
@@ -320,6 +360,8 @@ export default {
             this.controls.dampingFactor = 0.2;
             this.controls.enableZoom = true;
         },
+
+        // Limpia recursos cuando el componente se destruye
         setDispose() {
             if (this.controls) {
                 this.controls.dispose();
@@ -349,6 +391,8 @@ export default {
                 this.renderer = null;
             }
         },
+
+        // Maneja el redimensionamiento de la ventana
         setResize() {
             this.camera.aspect =
                 this.$refs.scene.clientWidth / this.$refs.scene.clientHeight;
@@ -358,6 +402,8 @@ export default {
                 this.$refs.scene.clientHeight
             );
         },
+
+        // Resetea la vista de la cámara
         resetView() {
             if (this.controls) {
                 this.controls.reset();
@@ -365,6 +411,8 @@ export default {
                 this.camera.lookAt(0, 0, 0);
             }
         },
+
+        // Loop de animación principal
         setAnimate() {
             const animate = () => {
                 requestAnimationFrame(animate);
@@ -382,6 +430,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+// Estilos para el contenedor de la escena
 .scene {
     height: 100%;
 
