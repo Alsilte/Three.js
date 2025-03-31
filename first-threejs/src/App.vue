@@ -11,7 +11,11 @@
     -->
 
 
-    <Scene class="app__scene" :lightSettings="lightSettings" :environmentEnabled="environmentEnabled"
+    <Scene 
+      ref="sceneComponent"
+      class="app__scene" 
+      :lightSettings="lightSettings" 
+      :environmentEnabled="environmentEnabled"
       :hdrIntensity="hdrIntensity" />
 
     <!-- 
@@ -30,14 +34,21 @@
 
       
     -->
-    <Menu class="app__menu" :environmentEnabled="environmentEnabled" :hdrIntensityValue="hdrIntensity"
-      @update-lights="updateLights" @toggle-hdr="updateEnvironment" @update-hdr-intensity="updateHDRIntensity" />
+    <Menu class="app__menu" 
+      :environmentEnabled="environmentEnabled" 
+      :hdrIntensityValue="hdrIntensity"
+      @update-lights="updateLights" 
+      @toggle-hdr="updateEnvironment" 
+      @update-hdr-intensity="updateHDRIntensity"
+      @select-texture="updateTexture" />
+
   </div>
 </template>
 
 <script>
 import Scene from '@/components/Scene.vue'
 import Menu from '@/components/Menu.vue'
+
 
 export default {
   name: 'App',
@@ -66,6 +77,11 @@ export default {
 
   // Métodos para manejar eventos de los componentes hijos
   methods: {
+
+    updateTexture(texture) {
+      // Pasar la textura seleccionada al componente Scene
+      this.$refs.sceneComponent.updateCubeTexture(texture);
+    },
     // Actualiza la configuración de luces cuando cambia en el menú
     updateLights(newValues) {
       // Usa spread operator para crear una copia y disparar reactividad

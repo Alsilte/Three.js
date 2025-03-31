@@ -63,6 +63,7 @@ export default {
     // Estado local del componente
     data() {
         return {
+            cube: null,
             scene: null,          // Escena principal de Three.js
             camera: null,         // Cámara perspectiva
             renderer: null,       // Renderizador WebGL
@@ -155,6 +156,7 @@ export default {
             roughness: 1, // Nivel de roughness (puedes ajustarlo si es necesario)
         });
         const cubo = new THREE.Mesh(geometryCube, materialCubo);
+        this.cube = cubo
         cubo.castShadow = true; // El cubo proyecta sombras
         cubo.receiveShadow = true; // El cubo recibe sombras
         cubo.position.y = 0.5 + 0.2
@@ -297,6 +299,85 @@ export default {
         this.updateLights(this.lightSettings);
     },
     methods: {
+
+        // Añade este método para actualizar la textura
+        updateCubeTexture(texture) {
+            if (!this.cube) return;
+
+            // Cargar la nueva textura
+            const textureLoader = new THREE.TextureLoader();
+
+            // Extract the base path (directory)
+            const basePath = texture.img.substring(0, texture.img.lastIndexOf('/') + 1);
+
+            // Extract just the filename without extension
+            const fileName = texture.img.split('/').pop();
+            const fileNameWithoutExt = fileName.replace(/\.\w+$/, ''); // Remove file extension
+
+            // Get the base name by removing "baseColor" suffix
+            const baseName = fileNameWithoutExt.replace('baseColor', '');
+
+            console.log(`Loading textures for ${texture.name}:`);
+            console.log(`- Base: ${texture.img}`);
+            console.log(`- Metallic: ${basePath}${baseName}metallic.webp`);
+            console.log(`- Roughness: ${basePath}${baseName}roughness.webp`);
+
+            // Load the base texture
+            const baseColorTexture = textureLoader.load(
+                texture.img,
+                () => console.log(`Base texture loaded successfully`),
+                undefined,
+                (err) => console.error(`Failed to load base texture: ${err}`)
+            );
+
+            // Load the metallic texture with error handling
+            const metallicPath = `${basePath}${baseName}metallic.webp`;
+            let metallicTexture;
+            try {
+                metallicTexture = textureLoader.load(
+                    metallicPath,
+                    () => console.log(`Metallic texture loaded successfully`),
+                    undefined,
+                    (err) => {
+                        console.error(`Failed to load metallic texture: ${err}`);
+                        // Use a default texture if loading fails
+                        metallicTexture = new THREE.Texture();
+                        metallicTexture.needsUpdate = true;
+                    }
+                );
+            } catch (error) {
+                console.error(`Error loading ${metallicPath}: ${error}`);
+                metallicTexture = new THREE.Texture();
+                metallicTexture.needsUpdate = true;
+            }
+
+            // Load the roughness texture with error handling
+            const roughnessPath = `${basePath}${baseName}roughness.webp`;
+            let roughnessTexture;
+            try {
+                roughnessTexture = textureLoader.load(
+                    roughnessPath,
+                    () => console.log(`Roughness texture loaded successfully`),
+                    undefined,
+                    (err) => {
+                        console.error(`Failed to load roughness texture: ${err}`);
+                        // Use a default texture if loading fails
+                        roughnessTexture = new THREE.Texture();
+                        roughnessTexture.needsUpdate = true;
+                    }
+                );
+            } catch (error) {
+                console.error(`Error loading ${roughnessPath}: ${error}`);
+                roughnessTexture = new THREE.Texture();
+                roughnessTexture.needsUpdate = true;
+            }
+
+            // Update the material textures
+            this.cube.material.map = baseColorTexture;
+            this.cube.material.metalnessMap = metallicTexture;
+            this.cube.material.roughnessMap = roughnessTexture;
+            this.cube.material.needsUpdate = true; // Important: update the material
+        },
         // Inicializa la escena de Three.js
         setScene() {
             this.scene = markRaw(new THREE.Scene());
