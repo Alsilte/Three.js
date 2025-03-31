@@ -304,79 +304,54 @@ export default {
         updateCubeTexture(texture) {
             if (!this.cube) return;
 
-            // Cargar la nueva textura
+            console.log('Scene - Recibiendo textura:', {
+                nombre: texture.processedName,
+                tipo: texture.suffix,
+                ruta: texture.img
+            });
+
             const textureLoader = new THREE.TextureLoader();
 
-            // Extract the base path (directory)
-            const basePath = texture.img.substring(0, texture.img.lastIndexOf('/') + 1);
-
-            // Extract just the filename without extension
-            const fileName = texture.img.split('/').pop();
-            const fileNameWithoutExt = fileName.replace(/\.\w+$/, ''); // Remove file extension
-
-            // Get the base name by removing "baseColor" suffix
-            const baseName = fileNameWithoutExt.replace('baseColor', '');
-
-            console.log(`Loading textures for ${texture.name}:`);
-            console.log(`- Base: ${texture.img}`);
-            console.log(`- Metallic: ${basePath}${baseName}metallic.webp`);
-            console.log(`- Roughness: ${basePath}${baseName}roughness.webp`);
-
-            // Load the base texture
-            const baseColorTexture = textureLoader.load(
-                texture.img,
-                () => console.log(`Base texture loaded successfully`),
-                undefined,
-                (err) => console.error(`Failed to load base texture: ${err}`)
-            );
-
-            // Load the metallic texture with error handling
-            const metallicPath = `${basePath}${baseName}metallic.webp`;
-            let metallicTexture;
-            try {
-                metallicTexture = textureLoader.load(
-                    metallicPath,
-                    () => console.log(`Metallic texture loaded successfully`),
+            // Determinar si es una textura base o una textura de material (metallic/roughness)
+            if (texture.suffix === 'baseColor') {
+                console.log('Scene - Aplicando textura base');
+                // Cargar textura base
+                const baseColorTexture = textureLoader.load(
+                    texture.img,
+                    () => console.log(`Scene - Base texture loaded successfully`),
                     undefined,
-                    (err) => {
-                        console.error(`Failed to load metallic texture: ${err}`);
-                        // Use a default texture if loading fails
-                        metallicTexture = new THREE.Texture();
-                        metallicTexture.needsUpdate = true;
-                    }
+                    (err) => console.error(`Scene - Failed to load base texture:`, err)
                 );
-            } catch (error) {
-                console.error(`Error loading ${metallicPath}: ${error}`);
-                metallicTexture = new THREE.Texture();
-                metallicTexture.needsUpdate = true;
+                this.cube.material.map = baseColorTexture;
+            } else if (texture.suffix === 'metallic') {
+                console.log('Scene - Aplicando textura metálica');
+                // Cargar textura metálica
+                const metallicTexture = textureLoader.load(
+                    texture.img,
+                    () => console.log(`Scene - Metallic texture loaded successfully`),
+                    undefined,
+                    (err) => console.error(`Scene - Failed to load metallic texture:`, err)
+                );
+                this.cube.material.metalnessMap = metallicTexture;
+            } else if (texture.suffix === 'roughness') {
+                console.log('Scene - Aplicando textura de rugosidad');
+                // Cargar textura de rugosidad
+                const roughnessTexture = textureLoader.load(
+                    texture.img,
+                    () => console.log(`Scene - Roughness texture loaded successfully`),
+                    undefined,
+                    (err) => console.error(`Scene - Failed to load roughness texture:`, err)
+                );
+                this.cube.material.roughnessMap = roughnessTexture;
             }
 
-            // Load the roughness texture with error handling
-            const roughnessPath = `${basePath}${baseName}roughness.webp`;
-            let roughnessTexture;
-            try {
-                roughnessTexture = textureLoader.load(
-                    roughnessPath,
-                    () => console.log(`Roughness texture loaded successfully`),
-                    undefined,
-                    (err) => {
-                        console.error(`Failed to load roughness texture: ${err}`);
-                        // Use a default texture if loading fails
-                        roughnessTexture = new THREE.Texture();
-                        roughnessTexture.needsUpdate = true;
-                    }
-                );
-            } catch (error) {
-                console.error(`Error loading ${roughnessPath}: ${error}`);
-                roughnessTexture = new THREE.Texture();
-                roughnessTexture.needsUpdate = true;
-            }
+            console.log('Scene - Estado actual del material:', {
+                baseTexture: this.cube.material.map ? 'Cargada' : 'No cargada',
+                metallicMap: this.cube.material.metalnessMap ? 'Cargada' : 'No cargada',
+                roughnessMap: this.cube.material.roughnessMap ? 'Cargada' : 'No cargada'
+            });
 
-            // Update the material textures
-            this.cube.material.map = baseColorTexture;
-            this.cube.material.metalnessMap = metallicTexture;
-            this.cube.material.roughnessMap = roughnessTexture;
-            this.cube.material.needsUpdate = true; // Important: update the material
+            this.cube.material.needsUpdate = true;
         },
         // Inicializa la escena de Three.js
         setScene() {

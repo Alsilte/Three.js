@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tresjs/core": "^4.3.3",
     "first-threejs": "file:",
     "gsap": "^3.12.7",
     "three": "^0.174.0",

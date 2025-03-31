@@ -176,6 +176,11 @@ export default {
   // Métodos para emitir eventos al padre
   methods: {
     selectBaseTexture(texture) {
+      console.log('Menu - Seleccionando textura base:', {
+        nombre: texture.processedName,
+        marca: texture.marca,
+        ruta: texture.img
+      });
       this.selectedBaseTexture = texture.name;
       this.$emit('select-texture', texture);
     },
@@ -183,14 +188,29 @@ export default {
       return this.selectedBaseTexture === textureName;
     },
     updateTexture(marca, variant) {
-      const texture = this.allTextures.find(tex =>
+      console.log('Menu - Actualizando texturas para:', {
+        marca: marca,
+        variante: variant
+      });
+      
+      // Buscar todas las texturas relacionadas (metallic y roughness)
+      const relatedTextures = this.allTextures.filter(tex =>
         tex.baseName.startsWith(`${marca}_${variant}`) &&
         (tex.suffix === 'metallic' || tex.suffix === 'roughness')
       );
 
-      if (texture) {
+      console.log('Menu - Texturas relacionadas encontradas:', 
+        relatedTextures.map(tex => ({
+          nombre: tex.processedName,
+          tipo: tex.suffix,
+          ruta: tex.img
+        }))
+      );
+
+      // Emitir cada textura encontrada
+      relatedTextures.forEach(texture => {
         this.$emit('select-texture', texture);
-      }
+      });
     },
 
     formatTextureOption(option) {
