@@ -16,7 +16,9 @@
       class="app__scene" 
       :lightSettings="lightSettings" 
       :environmentEnabled="environmentEnabled"
-      :hdrIntensity="hdrIntensity" />
+      :hdrIntensity="hdrIntensity"
+      :scaleX="scaleX"
+      :scaleY="scaleY" />
 
     <!-- 
       Componente Menu:
@@ -40,7 +42,9 @@
       @update-lights="updateLights" 
       @toggle-hdr="updateEnvironment" 
       @update-hdr-intensity="updateHDRIntensity"
-      @select-texture="updateTexture" />
+      @select-texture="updateTexture"
+      @update-scale-x="updateScaleX"
+      @update-scale-y="updateScaleY" />
 
   </div>
 </template>
@@ -71,12 +75,22 @@ export default {
         rect: { enabled: false, intensity: 1 }         // Luz de área rectangular
       },
       environmentEnabled: true,  // Estado inicial del entorno HDR
-      hdrIntensity: 1          // Intensidad inicial del HDR
+      hdrIntensity: 1,
+      scaleX: 1,
+      scaleY: 1,
+               // Intensidad inicial del HDR
     }
   },
 
   // Métodos para manejar eventos de los componentes hijos
   methods: {
+
+    updateScaleY(newScaleY) {
+      this.scaleY = newScaleY;
+    },
+    updateScaleX(newScaleX) {
+      this.scaleX = newScaleX;
+    },
 
     updateTexture(texture) {
       // Pasar la textura seleccionada al componente Scene

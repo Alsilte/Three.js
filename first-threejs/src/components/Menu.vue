@@ -1,26 +1,62 @@
 <template>
   <div class="menu">
     <h2 class="menu__title">Lighting Options</h2>
-
-    <div v-for="(config, key) in lights" :key="key" class="menu__item">
-      <input type="checkbox" :id="`${key}Light`" :name="`${key}Light`" v-model="lights[key].enabled"
+    
+    <div v-for="(config, key) in lights" 
+      :key="key" 
+      class="menu__item">
+      <input type="checkbox" 
+        :id="`${key}Light`" 
+        :name="`${key}Light`" 
+        v-model="lights[key].enabled"
         @change="emitLightUpdate" />
       <label :for="`${key}Light`">{{ formatLabel(key) }}</label>
 
-      <input type="range" v-model.number="lights[key].intensity" :min="range[key]?.min || 0" :max="range[key]?.max || 2"
-        :step="range[key]?.step || 0.1" :value="lights[key].intensity" @input="emitLightUpdate"
+      <input type="range" 
+        v-model.number="lights[key].intensity" 
+        :min="range[key]?.min || 0" 
+        :max="range[key]?.max || 2"
+        :step="range[key]?.step || 0.1" 
+        :value="lights[key].intensity" 
+        @input="emitLightUpdate"
         :disabled="!lights[key].enabled" />
     </div>
 
     <div class="menu__item">
-      <input type="checkbox" id="hdrToggle" v-model="hdrEnabled" @change="emitHDRToggle" />
+      <input type="checkbox" 
+        id="hdrToggle" 
+        v-model="hdrEnabled" 
+        @change="emitHDRToggle" />
       <label for="hdrToggle">Activar HDR</label>
     </div>
 
     <div class="menu__item" v-if="hdrEnabled">
       <label for="hdrIntensity">HDR Intensity</label>
-      <input type="range" id="hdrIntensity" v-model.number="hdrIntensity" :min="range.hdr?.min || 0"
-        :max="range.hdr?.max || 2" :step="range.hdr?.step || 0.1" @input="emitHDRIntensity" />
+      <input type="range" 
+        id="hdrIntensity" 
+        v-model.number="hdrIntensity" 
+        :min="range.hdr?.min || 0"
+        :max="range.hdr?.max || 2" 
+        :step="range.hdr?.step || 0.1"
+        @input="emitHDRIntensity" />
+    </div>
+    <div class="menu__item">
+      <label for="scaleX">Escala eje X</label>
+      <input type="range" id="scaleX" 
+        v-model.number="scaleX" 
+        :min="range.scale?.min || 0.1" 
+        :max="range.scale?.max || 2" 
+        :step="range.scale?.step || 0.1" 
+        @input="emitScaleX" />
+    </div>
+    <div class="menu__item">
+      <label for="scaleY">Escala eje Y</label>
+      <input type="range" id="scaleY" 
+        v-model.number="scaleY" 
+        :min="range.scale?.min || 0.1" 
+        :max="range.scale?.max || 10" 
+        :step="range.scale?.step || 0.1" 
+        @input="emitScaleY" />
     </div>
     <div class="menu__texturas">
       <div v-for="(textureGroup, index) in groupedTextures" :key="index" class="menu__texturas__container">
@@ -80,8 +116,9 @@ export default {
         hemisphere: { min: 0, max: 50, step: 0.1 },
         rect: { min: 0, max: 50, step: 1 },
       },
-
-      // Array de texturas cargadas dinámicamente
+      scaleX: 1,
+      scaleY: 1,  
+       // Array de texturas cargadas dinámicamente
       allTextures: Object.entries(import.meta.glob("@/assets/texturas/*.webp"))
         .map(([key, value]) => {
           const filename = key.split("/").pop();
@@ -175,6 +212,13 @@ export default {
 
   // Métodos para emitir eventos al padre
   methods: {
+
+    emitScaleY() {
+      this.$emit('update-scale-y', this.scaleY);
+    },
+    emitScaleX() {
+      this.$emit('update-scale-x', this.scaleX);
+    },
     selectBaseTexture(texture) {
       console.log('Menu - Seleccionando textura base:', {
         nombre: texture.processedName,
@@ -259,7 +303,7 @@ export default {
   align-items: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   font-family: Arial, sans-serif;
-  padding-top: calc(10vh);
+  padding-top: calc(2vh);
   color: white;
 
   &__texturas {

@@ -58,7 +58,16 @@ export default {
         hdrIntensity: {
             type: Number,
             default: 0.75
+        },
+        scaleX: {
+            type: Number,
+            default: 1
+        },
+        scaleY: {
+            type: Number,
+            default: 1
         }
+
     },
     // Estado local del componente
     data() {
@@ -95,7 +104,16 @@ export default {
 
     // Observadores de props reactivas
     watch: {
-
+        scaleY(newScaleY) {
+            if (this.cube) {
+                this.cube.scale.y = newScaleY;
+            }
+        },
+        scaleX(newScaleX) {
+            if (this.cube) {
+                this.cube.scale.x = newScaleX;
+            }
+        },
         // Observa cambios en configuración de luces
         lightSettings: {
             handler(newSettings) {
@@ -217,79 +235,79 @@ export default {
         this.scene.add(plane);
         /* const faceSize = 1; // Tamaño de cada cara
          const half = faceSize / 2; // Mitad del tamaño de la cara
-         const cubeParts = [];
- 
+        const cubeParts = [];
+
          // Configuración de las posiciones y rotaciones finales para formar el cubo
-         const transforms = [
+        const transforms = [
              // Frente
-             { position: [0, 0, half], rotation: [0, 0, 0] },
+            { position: [0, 0, half], rotation: [0, 0, 0] },
              // Atrás
-             { position: [0, 0, -half], rotation: [0, Math.PI, 0] },
+            { position: [0, 0, -half], rotation: [0, Math.PI, 0] },
              // Arriba
-             { position: [0, half, 0], rotation: [-Math.PI / 2, 0, 0] },
+            { position: [0, half, 0], rotation: [-Math.PI / 2, 0, 0] },
              // Abajo
-             { position: [0, -half, 0], rotation: [Math.PI / 2, 0, 0] },
-             // Derecha
-             { position: [half, 0, 0], rotation: [0, -Math.PI / 2, 0] },
+            { position: [0, -half, 0], rotation: [Math.PI / 2, 0, 0] },
+            // Derecha
+            { position: [half, 0, 0], rotation: [0, -Math.PI / 2, 0] },
              // Izquierda
-             { position: [-half, 0, 0], rotation: [0, Math.PI / 2, 0] },
-         ];
- 
+            { position: [-half, 0, 0], rotation: [0, Math.PI / 2, 0] },
+        ];
+
          // Crear las caras del cubo con posiciones y rotaciones iniciales aleatorias
-         transforms.forEach(({ position, rotation }, i) => {
-             const materialClone = material.clone();
-             const face = new THREE.Mesh(new THREE.PlaneGeometry(faceSize, faceSize), materialClone);
- 
+        transforms.forEach(({ position, rotation }, i) => {
+            const materialClone = material.clone();
+            const face = new THREE.Mesh(new THREE.PlaneGeometry(faceSize, faceSize), materialClone);
+
              // Generar posiciones iniciales aleatorias fuera del área visible
              const randomX = (Math.random() - 0.5) * 20; // Rango: -10 a 10
              const randomY = (Math.random() - 0.5) * 20; // Rango: -10 a 10
              const randomZ = (Math.random() - 0.5) * 20; // Rango: -10 a 10
- 
+
              // Generar rotaciones iniciales aleatorias
              const randomRotX = Math.random() * Math.PI * 2; // Rango: 0 a 2π
              const randomRotY = Math.random() * Math.PI * 2; // Rango: 0 a 2π
              const randomRotZ = Math.random() * Math.PI * 2; // Rango: 0 a 2π
- 
+
              // Asignar posiciones y rotaciones iniciales aleatorias
-             face.position.set(randomX, randomY, randomZ);
-             face.rotation.set(randomRotX, randomRotY, randomRotZ);
- 
+            face.position.set(randomX, randomY, randomZ);
+            face.rotation.set(randomRotX, randomRotY, randomRotZ);
+
              // Añadir la cara a la escena y al array de partes del cubo
-             cubeParts.push(face);
- 
+            cubeParts.push(face);
+
              // Animar hacia la posición y rotación final para formar el cubo
-             gsap.to(face.position, {
-                 x: position[0],
-                 y: position[1],
-                 z: position[2],
-                 duration: 5,
-                 ease: "power2.inOut",
-             });
- 
-             gsap.to(face.rotation, {
-                 x: rotation[0],
-                 y: rotation[1],
-                 z: rotation[2],
-                 duration: 5,
-                 ease: "power2.inOut",
-             });
-         });
+            gsap.to(face.position, {
+                x: position[0],
+                y: position[1],
+                z: position[2],
+                duration: 5,
+                ease: "power2.inOut",
+            });
+
+            gsap.to(face.rotation, {
+                x: rotation[0],
+                y: rotation[1],
+                z: rotation[2],
+                duration: 5,
+                ease: "power2.inOut",
+            });
+        });
          // Animación GSAP: rotación continua
-         /*gsap.to(cube.rotation, {
+        /*gsap.to(cube.rotation, {
              y: Math.PI * 5,
-             duration: 3,
-             repeat: -1,
-             ease: 'power1.inOut'
-         });
- 
+            duration: 3,
+            repeat: -1,
+            ease: 'power1.inOut'
+        });
+
          // Animación GSAP: rebote vertical
-         gsap.to(cube.position, {
-             y: 1.5,
-             duration: 1.5,
-             yoyo: true,
-             repeat: -1,
-             ease: 'sine.inOut'
-         });*/
+        gsap.to(cube.position, {
+            y: 1.5,
+            duration: 1.5,
+            yoyo: true,
+            repeat: -1,
+            ease: 'sine.inOut'
+        });*/
 
 
         // Inicia bucle de animación
@@ -300,57 +318,55 @@ export default {
     },
     methods: {
 
+
         // Añade este método para actualizar la textura
         updateCubeTexture(texture) {
             if (!this.cube) return;
 
-            console.log('Scene - Recibiendo textura:', {
-                nombre: texture.processedName,
-                tipo: texture.suffix,
-                ruta: texture.img
-            });
-
             const textureLoader = new THREE.TextureLoader();
 
-            // Determinar si es una textura base o una textura de material (metallic/roughness)
+            // Verificar el sufijo de la textura y asignar correctamente
             if (texture.suffix === 'baseColor') {
-                console.log('Scene - Aplicando textura base');
-                // Cargar textura base
                 const baseColorTexture = textureLoader.load(
                     texture.img,
-                    () => console.log(`Scene - Base texture loaded successfully`),
+                    () => console.log('Base texture loaded successfully'),
                     undefined,
-                    (err) => console.error(`Scene - Failed to load base texture:`, err)
+                    (err) => console.error('Failed to load base texture:', err)
                 );
-                this.cube.material.map = baseColorTexture;
+                baseColorTexture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+                baseColorTexture.minFilter = THREE.LinearMipmapLinearFilter;
+                baseColorTexture.flipY = true;
+                // baseColorTexture.repeat.set(1 / this.scaleX, 1 / this.scaleY);  // Ajustar tanto en X como en Y
+                this.cube.material.map = baseColorTexture;  // Asegúrate de asignar al map de la textura
             } else if (texture.suffix === 'metallic') {
-                console.log('Scene - Aplicando textura metálica');
-                // Cargar textura metálica
                 const metallicTexture = textureLoader.load(
                     texture.img,
-                    () => console.log(`Scene - Metallic texture loaded successfully`),
+                    () => console.log('Metallic texture loaded successfully'),
                     undefined,
-                    (err) => console.error(`Scene - Failed to load metallic texture:`, err)
+                    (err) => console.error('Failed to load metallic texture:', err)
                 );
-                this.cube.material.metalnessMap = metallicTexture;
+                metallicTexture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+                metallicTexture.minFilter = THREE.LinearMipmapLinearFilter;
+                metallicTexture.flipY = true;
+                //metallicTexture.repeat.set(1 / this.scaleX, 1 / this.scaleY);  // Ajustar tanto en X como en Y
+
+                this.cube.material.metalnessMap = metallicTexture;  // Asigna correctamente a metallicMap
             } else if (texture.suffix === 'roughness') {
-                console.log('Scene - Aplicando textura de rugosidad');
-                // Cargar textura de rugosidad
                 const roughnessTexture = textureLoader.load(
                     texture.img,
-                    () => console.log(`Scene - Roughness texture loaded successfully`),
+                    () => console.log('Roughness texture loaded successfully'),
                     undefined,
-                    (err) => console.error(`Scene - Failed to load roughness texture:`, err)
+                    (err) => console.error('Failed to load roughness texture:', err)
                 );
-                this.cube.material.roughnessMap = roughnessTexture;
+                roughnessTexture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+                roughnessTexture.minFilter = THREE.LinearMipmapLinearFilter;
+                roughnessTexture.flipY = true;
+                //roughnessTexture.repeat.set(1 / this.scaleX, 1 / this.scaleY);  // Ajustar tanto en X como en Y
+
+                this.cube.material.roughnessMap = roughnessTexture;  // Asigna correctamente a roughnessMap
             }
 
-            console.log('Scene - Estado actual del material:', {
-                baseTexture: this.cube.material.map ? 'Cargada' : 'No cargada',
-                metallicMap: this.cube.material.metalnessMap ? 'Cargada' : 'No cargada',
-                roughnessMap: this.cube.material.roughnessMap ? 'Cargada' : 'No cargada'
-            });
-
+            // Actualiza el material para que las texturas se apliquen correctamente
             this.cube.material.needsUpdate = true;
         },
         // Inicializa la escena de Three.js
