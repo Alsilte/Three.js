@@ -336,7 +336,7 @@ export default {
                 baseColorTexture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
                 baseColorTexture.minFilter = THREE.LinearMipmapLinearFilter;
                 baseColorTexture.flipY = true;
-                // baseColorTexture.repeat.set(1 / this.scaleX, 1 / this.scaleY);  // Ajustar tanto en X como en Y
+                baseColorTexture.repeat.set(1 / this.scaleX, 1 / this.scaleY);  // Ajustar tanto en X como en Y
                 this.cube.material.map = baseColorTexture;  // Asegúrate de asignar al map de la textura
             } else if (texture.suffix === 'metallic') {
                 const metallicTexture = textureLoader.load(
@@ -348,7 +348,7 @@ export default {
                 metallicTexture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
                 metallicTexture.minFilter = THREE.LinearMipmapLinearFilter;
                 metallicTexture.flipY = true;
-                //metallicTexture.repeat.set(1 / this.scaleX, 1 / this.scaleY);  // Ajustar tanto en X como en Y
+                metallicTexture.repeat.set(1 / this.scaleX, 1 / this.scaleY);  // Ajustar tanto en X como en Y
 
                 this.cube.material.metalnessMap = metallicTexture;  // Asigna correctamente a metallicMap
             } else if (texture.suffix === 'roughness') {
@@ -361,7 +361,7 @@ export default {
                 roughnessTexture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
                 roughnessTexture.minFilter = THREE.LinearMipmapLinearFilter;
                 roughnessTexture.flipY = true;
-                //roughnessTexture.repeat.set(1 / this.scaleX, 1 / this.scaleY);  // Ajustar tanto en X como en Y
+                roughnessTexture.repeat.set(1 / this.scaleX, 1 / this.scaleY);  // Ajustar tanto en X como en Y
 
                 this.cube.material.roughnessMap = roughnessTexture;  // Asigna correctamente a roughnessMap
             }
