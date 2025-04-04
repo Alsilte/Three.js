@@ -296,99 +296,173 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-// Estilos del menú
 .menu {
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  font-family: Arial, sans-serif;
-  padding-top: calc(2vh);
-  color: white;
+  background-color: #222;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: all 0.3s ease-in-out;
+
+  &__title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: #00e676; /* Accent color */
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.2rem;
+    gap: 10px;
+    width: 100%;
+    font-size: 1rem;
+
+    input[type="checkbox"] {
+      accent-color: #00e676;
+      margin-right: 10px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+      border-radius: 8px;
+      background-color: #444;
+      height: 8px;
+      outline: none;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: #555;
+      }
+
+      &::-webkit-slider-runnable-track {
+        height: 8px;
+      }
+
+      &::-webkit-slider-thumb {
+        background: #00e676;
+        border: none;
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      &::-moz-range-thumb {
+        background: #00e676;
+        border: none;
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+    }
+
+    label {
+      font-size: 1rem;
+      color: #bbb;
+      flex: 1;
+    }
+
+    .menu__value {
+      font-size: 0.9rem;
+      color: #fff;
+      font-weight: 500;
+      min-width: 40px;
+      text-align: right;
+    }
+  }
 
   &__texturas {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    justify-content: center;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
     width: 100%;
-    padding-left: calc(100% / 6);
-    margin-top: 5%;
+    margin-top: 2rem;
 
     &__container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      width: 50%;
+      justify-content: center;
+      width: 100%;
+      padding: 0.5rem;
+      border-radius: 10px;
+      background-color: #646363;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: #444;
+      }
 
       img {
         width: 100px;
         height: auto;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        margin-bottom: 5px;
+        border-radius: 8px;
         cursor: pointer;
+        transition: transform 0.3s ease;
 
         &:hover {
-          border: 2px solid black;
+          transform: scale(1.1);
         }
 
         &.selected {
-          border: 2px solid red;
+          border: 2px solid #00e676;
         }
       }
 
       p {
-        font-size: 0.9rem;
-        color: white;
+        font-size: 1rem;
+        color: #ddd;
         text-align: center;
+        margin-top: 0.5rem;
       }
 
       select {
         width: 120px;
         padding: 8px;
         margin-top: 5px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        background-color: #333;
+        border-radius: 8px;
+        background-color: #916b6b;
         color: white;
+        border: 1px solid #555;
         font-size: 0.9rem;
         text-align: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+
+        &:hover {
+          background-color: #555;
+        }
       }
-    }
-  }
-
-  &__title {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 20px;
-  }
-
-  &__item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-    gap: 10px;
-
-    input[type="checkbox"] {
-      margin-right: 10px;
-      accent-color: #ff0303;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      cursor: pointer;
-    }
-
-    label {
-      font-size: 1rem;
-      cursor: pointer;
-
     }
   }
 
   &__item:last-child {
     margin-bottom: 0;
   }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 1rem;
+    max-width: 100%;
+    .menu__texturas {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .menu__texturas {
+      grid-template-columns: 1fr;
+    }
+  }
 }
+
 </style>
